@@ -2,144 +2,389 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Smart Study Schedule Generator</title>
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      background: #f4f6fb;
-      margin: 0;
-      padding: 30px;
-      color: #243047;
-    }
-
-    .container {
-      max-width: 750px;
-      margin: auto;
-      background: white;
-      padding: 30px;
-      border-radius: 12px;
-      box-shadow: 0 4px 15px #00000012;
-    }
-
-    h1 { color: #4056a1; }
-
-    input, select, button {
-      padding: 12px;
-      margin: 8px 0;
-      border-radius: 6px;
-      border: 1px solid #ccc;
-      box-sizing: border-box;
-      width: 100%;
-    }
-
-    button {
-      background: #4056a1;
-      color: white;
-      border: none;
-      cursor: pointer;
-    }
-
-    button:hover { background: #304080; }
-
-    .course {
-      background: #f0f3fa;
-      padding: 15px;
-      margin: 12px 0;
-      border-radius: 8px;
-    }
-
-    #results {
-      margin-top: 20px;
-      padding: 15px;
-      background: #edf7ef;
-      border-radius: 8px;
-      display: none;
-    }
-  </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Smart Study Planner</title>
+<style>
+:root {
+  font-family: Arial, sans-serif;
+  color: #23304a;
+  background: #f3f6fc;
+}
+* { box-sizing: border-box; }
+body { margin: 0; padding: 32px 16px; }
+.wrap { max-width: 850px; margin: auto; }
+.hero {
+  background: linear-gradient(125deg, #344ca2, #6479d7);
+  color: white;
+  padding: 32px;
+  border-radius: 18px;
+  margin-bottom: 22px;
+}
+.hero h1 { margin: 0 0 8px; font-size: 30px; }
+.hero p { margin: 0; line-height: 1.6; }
+.panel {
+  background: white;
+  border-radius: 16px;
+  padding: 28px;
+  margin: 18px 0;
+  box-shadow: 0 5px 22px #172f6010;
+}
+h2 { font-size: 19px; margin: 0 0 12px; }
+.hint { color: #5d6980; font-size: 14px; line-height: 1.5; }
+.grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+label {
+  display: block;
+  font-weight: 600;
+  font-size: 14px;
+  margin: 12px 0 6px;
+}
+input, select, textarea {
+  width: 100%;
+  padding: 12px;
+  border: 1px solid #cdd5e3;
+  border-radius: 9px;
+  font: inherit;
+  background: white;
+  color: #23304a;
+}
+textarea { min-height: 80px; resize: vertical; }
+button {
+  padding: 12px 18px;
+  border: 0;
+  border-radius: 9px;
+  background: #3c55ad;
+  color: white;
+  font-weight: 650;
+  cursor: pointer;
+}
+button:hover { background: #2d418b; }
+.secondary { background: #e9edfa; color: #31478f; }
+.secondary:hover { background: #dce3f7; }
+.danger { background: #fce9ea; color: #9e343d; }
+.course {
+  border: 1px solid #dce3ef;
+  background: #fafbfe;
+  padding: 18px;
+  border-radius: 12px;
+  margin: 14px 0;
+}
+.coursehead {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+.actions {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-top: 20px;
+}
+.status {
+  padding: 14px;
+  background: #edf5ff;
+  border-radius: 10px;
+  margin-top: 16px;
+  display: none;
+}
+.footer {
+  text-align: center;
+  color: #68758b;
+  font-size: 13px;
+  margin: 20px;
+}
+@media(max-width:600px) {
+  .grid { grid-template-columns: 1fr; }
+  .hero, .panel { padding: 20px; }
+}
+</style>
 </head>
-
 <body>
-  <div class="container">
-    <h1>Smart Study Schedule Generator</h1>
-    <p>Organize your courses and create a personalized
-       weekly study schedule using AI.</p>
+<main class="wrap">
 
-    <h2>Your Courses</h2>
-    <div id="courses"></div>
+<header class="hero">
+  <h1>Smart Study Planner</h1>
+  <p>
+    Create a personalized study schedule for your current
+    semester. Tell us about your courses, deadlines,
+    and availability.
+  </p>
+</header>
 
-    <button onclick="addCourse()">+ Add Course</button>
+<form id="survey">
 
-    <h2>Study Availability</h2>
-    <label for="hours">Hours available per week</label>
-    <input type="number" id="hours" min="1" max="168"
-           placeholder="Example: 15">
+<section class="panel">
+  <h2>1. Your Study Goals</h2>
+  <label for="goal">
+    What is your biggest study goal this semester?
+  </label>
+  <select id="goal" required>
+    <option value="">Choose a goal</option>
+    <option>Improve my grades</option>
+    <option>Stay on top of assignments</option>
+    <option>Prepare for exams</option>
+    <option>Balance school and other commitments</option>
+    <option>Build consistent study habits</option>
+  </select>
+</section>
 
-    <button onclick="generateSchedule()">
-      Generate My Study Schedule
-    </button>
+<section class="panel">
+  <h2>2. Your Current Courses</h2>
+  <p class="hint">
+    Add the courses you're currently taking.
+    Include upcoming deadlines when possible.
+  </p>
+  <div id="courses"></div>
+  <button type="button" class="secondary" id="add">
+    + Add Another Course
+  </button>
+</section>
 
-    <div id="results"></div>
+<section class="panel">
+  <h2>3. Your Weekly Study Availability</h2>
+  <div class="grid">
+    <div>
+      <label for="hours">
+        How many hours can you study per week outside class?
+      </label>
+      <input id="hours" type="number" min="1" max="100"
+             step="0.5" placeholder="Example: 15" required>
+    </div>
+    <div>
+      <label for="session">
+        Preferred length of each study session
+      </label>
+      <select id="session" required>
+        <option value="">Choose session length</option>
+        <option value="30">30 minutes</option>
+        <option value="45">45 minutes</option>
+        <option value="60">1 hour</option>
+        <option value="90">1.5 hours</option>
+        <option value="120">2 hours</option>
+      </select>
+    </div>
+    <div>
+      <label for="time">When do you study best?</label>
+      <select id="time" required>
+        <option value="">Choose a time</option>
+        <option>Morning</option>
+        <option>Afternoon</option>
+        <option>Evening</option>
+        <option>No preference</option>
+      </select>
+    </div>
+    <div>
+      <label for="days">
+        How many days per week can you study?
+      </label>
+      <select id="days" required>
+        <option value="">Choose days</option>
+        <option>2</option><option>3</option>
+        <option>4</option><option>5</option>
+        <option>6</option><option>7</option>
+      </select>
+    </div>
   </div>
 
-  <script>
-    function addCourse() {
-      const container = document.getElementById("courses");
+  <label>Which days are you available?</label>
+  <div id="dayChecks"
+       style="display:flex;flex-wrap:wrap;gap:14px">
+    <label><input type="checkbox" value="Monday"
+      style="width:auto"> Mon</label>
+    <label><input type="checkbox" value="Tuesday"
+      style="width:auto"> Tue</label>
+    <label><input type="checkbox" value="Wednesday"
+      style="width:auto"> Wed</label>
+    <label><input type="checkbox" value="Thursday"
+      style="width:auto"> Thu</label>
+    <label><input type="checkbox" value="Friday"
+      style="width:auto"> Fri</label>
+    <label><input type="checkbox" value="Saturday"
+      style="width:auto"> Sat</label>
+    <label><input type="checkbox" value="Sunday"
+      style="width:auto"> Sun</label>
+  </div>
+</section>
 
-      const div = document.createElement("div");
-      div.className = "course";
+<section class="panel">
+  <h2>4. Study Challenges</h2>
+  <label for="challenge">
+    What makes studying difficult for you?
+  </label>
+  <select id="challenge" required>
+    <option value="">Choose a challenge</option>
+    <option>Procrastination</option>
+    <option>Time management</option>
+    <option>Understanding difficult material</option>
+    <option>Distractions</option>
+    <option>Balancing work and school</option>
+    <option>Other</option>
+  </select>
 
-      div.innerHTML = `
-        <input class="course-name"
-               placeholder="Course name (e.g. STAT 321)">
+  <label for="notes">
+    Anything else your study plan should consider?
+  </label>
+  <textarea id="notes" maxlength="500"
+    placeholder="Example: I work on weekends and need more time for math."></textarea>
+</section>
 
-        <label>Difficulty</label>
-        <select class="difficulty">
-          <option value="Easy">Easy</option>
-          <option value="Medium">Medium</option>
-          <option value="Hard">Hard</option>
+<section class="panel">
+  <h2>Ready to Plan?</h2>
+  <p class="hint">
+    This button currently checks your answers.
+    Google Sheets and Gemini AI will be connected next.
+  </p>
+  <div class="actions">
+    <button type="submit">Preview My Study Data</button>
+    <button type="reset" class="secondary">
+      Clear Answers
+    </button>
+  </div>
+  <div id="status" class="status" role="status"></div>
+</section>
+
+</form>
+<p class="footer">Smart Study Planner | Student Project</p>
+</main>
+
+<script>
+const courses = document.getElementById("courses");
+let count = 0;
+
+function addCourse() {
+  count++;
+  const el = document.createElement("div");
+  el.className = "course";
+
+  el.innerHTML = `
+    <div class="coursehead">
+      <strong>Course ${count}</strong>
+      <button type="button" class="danger remove">
+        Remove
+      </button>
+    </div>
+    <div class="grid">
+      <div>
+        <label>Course name</label>
+        <input class="name" maxlength="80"
+          placeholder="e.g. STAT 321" required>
+      </div>
+      <div>
+        <label>Difficulty level</label>
+        <select class="difficulty" required>
+          <option value="">Choose difficulty</option>
+          <option>Easy</option>
+          <option>Medium</option>
+          <option>Hard</option>
         </select>
+      </div>
+      <div>
+        <label>Next deadline (optional)</label>
+        <input class="deadline" type="date">
+      </div>
+      <div>
+        <label>Deadline type</label>
+        <select class="type">
+          <option>None</option>
+          <option>Assignment</option>
+          <option>Quiz</option>
+          <option>Exam</option>
+          <option>Project</option>
+        </select>
+      </div>
+    </div>
+  `;
 
-        <label>Next assignment or exam date</label>
-        <input type="date" class="deadline">
+  el.querySelector(".remove").onclick = () => {
+    if (courses.children.length > 1) {
+      el.remove();
+    } else {
+      alert("Please keep at least one course.");
+    }
+  };
 
-        <button type="button" onclick="this.parentElement.remove()">
-          Remove Course
-        </button>
-      `;
+  courses.appendChild(el);
+}
 
-      container.appendChild(div);
+document.getElementById("add").onclick = addCourse;
+addCourse();
+
+document.getElementById("survey")
+  .addEventListener("submit", function(e) {
+    e.preventDefault();
+
+    const checked = [...document.querySelectorAll(
+      "#dayChecks input:checked"
+    )].map(x => x.value);
+
+    const status = document.getElementById("status");
+    status.style.display = "block";
+
+    const days = Number(document.getElementById("days").value);
+
+    if (checked.length !== days) {
+      status.textContent =
+        `Please select exactly ${days} available days.`;
+      return;
     }
 
-    function generateSchedule() {
-      const hours = Number(document.getElementById("hours").value);
-      const courses = document.querySelectorAll(".course");
-      const results = document.getElementById("results");
+    const data = {
+      goal: document.getElementById("goal").value,
+      courses: [...courses.children].map(el => ({
+        name: el.querySelector(".name").value.trim(),
+        difficulty: el.querySelector(".difficulty").value,
+        deadline: el.querySelector(".deadline").value,
+        deadlineType: el.querySelector(".type").value
+      })),
+      weeklyHours: Number(document.getElementById("hours").value),
+      sessionMinutes: Number(document.getElementById("session").value),
+      preferredTime: document.getElementById("time").value,
+      availableDays: checked,
+      challenge: document.getElementById("challenge").value,
+      notes: document.getElementById("notes").value.trim()
+    };
 
-      results.style.display = "block";
+    const names = data.courses.map(c => c.name.toLowerCase());
 
-      if (!Number.isFinite(hours) || hours <= 0 ||
-          hours > 168 || courses.length === 0) {
-        results.textContent =
-          "Please add a course and enter valid study hours.";
-        return;
-      }
-
-      for (const course of courses) {
-        if (!course.querySelector(".course-name").value.trim()) {
-          results.textContent =
-            "Please enter a name for every course.";
-          return;
-        }
-      }
-
-      results.textContent =
-        "Your courses were collected successfully! " +
-        "Gemini AI will be connected in a later step.";
+    if (names.some(n => !n) || new Set(names).size !== names.length) {
+      status.textContent =
+        "Please enter a unique name for every course.";
+      return;
     }
 
-    addCourse();
-  </script>
+    status.replaceChildren();
+
+    const heading = document.createElement("strong");
+    heading.textContent = "Your form works!";
+
+    const details = document.createElement("p");
+    details.textContent =
+      `${data.courses.length} courses | ` +
+      `${data.weeklyHours} study hours per week | ` +
+      `${data.availableDays.join(", ")}`;
+
+    const next = document.createElement("p");
+    next.textContent =
+      "Next: Connect Google Sheets and Gemini AI.";
+
+    status.append(heading, details, next);
+    console.log("Study data preview:", data);
+  });
+
+document.getElementById("survey")
+  .addEventListener("reset", function() {
+    setTimeout(() => {
+      courses.replaceChildren();
+      count = 0;
+      addCourse();
+      document.getElementById("status").style.display = "none";
+    }, 0);
+  });
+</script>
 </body>
 </html>
