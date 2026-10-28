@@ -252,12 +252,27 @@ button:hover { background: #2d418b; }
 <p class="footer">Smart Study Planner | Student Project</p>
 </main>
 
+
 <script>
 const courses = document.getElementById("courses");
+const survey = document.getElementById("survey");
+const status = document.getElementById("status");
+
+const scriptURL =
+  "https://script.google.com/macros/s/" +
+  "AKfycbxS36VXhilYR7tVHirXTIaoOm4vP3r4j--NyX7cT0Dbksmss5XyCRKO7e9YKg46R0oz/exec";
+
 let count = 0;
+let submitting = false;
 
 function addCourse() {
+  if (courses.children.length >= 12) {
+    alert("You can add up to 12 courses.");
+    return;
+  }
+
   count++;
+
   const el = document.createElement("div");
   el.className = "course";
 
@@ -268,12 +283,14 @@ function addCourse() {
         Remove
       </button>
     </div>
+
     <div class="grid">
       <div>
         <label>Course name</label>
         <input class="name" maxlength="80"
           placeholder="e.g. STAT 321" required>
       </div>
+
       <div>
         <label>Difficulty level</label>
         <select class="difficulty" required>
@@ -283,10 +300,12 @@ function addCourse() {
           <option>Hard</option>
         </select>
       </div>
+
       <div>
         <label>Next deadline (optional)</label>
         <input class="deadline" type="date">
       </div>
+
       <div>
         <label>Deadline type</label>
         <select class="type">
@@ -314,78 +333,113 @@ function addCourse() {
 document.getElementById("add").onclick = addCourse;
 addCourse();
 
-document.getElementById("survey")
-  .addEventListener("submit", function(e) {
-    e.preventDefault();
+survey.addEventListener("submit", async function(e) {
+  e.preventDefault();
 
-    const checked = [...document.querySelectorAll(
-      "#dayChecks input:checked"
-    )].map(x => x.value);
+  if (submitting) return;
 
-    const status = document.getElementById("status");
-    status.style.display = "block";
+  status.style.display = "block";
 
-    const days = Number(document.getElementById("days").value);
+  const checked = [
+    ...document.querySelectorAll("#dayChecks input:checked")
+  ].map(input => input.value);
 
-    if (checked.length !== days) {
-      status.textContent =
-        `Please select exactly ${days} available days.`;
-      return;
-    }
+  const days = Number(
+    document.getElementById("days").value
+  );
 
-    const data = {
-      goal: document.getElementById("goal").value,
-      courses: [...courses.children].map(el => ({
-        name: el.querySelector(".name").value.trim(),
-        difficulty: el.querySelector(".difficulty").value,
-        deadline: el.querySelector(".deadline").value,
-        deadlineType: el.querySelector(".type").value
-      })),
-      weeklyHours: Number(document.getElementById("hours").value),
-      sessionMinutes: Number(document.getElementById("session").value),
-      preferredTime: document.getElementById("time").value,
-      availableDays: checked,
-      challenge: document.getElementById("challenge").value,
-      notes: document.getElementById("notes").value.trim()
-    };
+  if (checked.length !== days) {
+    status.textContent =
+      `Please select exactly ${days} available days.`;
+    return;
+  }
 
-    const names = data.courses.map(c => c.name.toLowerCase());
+  const data = {
+    goal: document.getElementById("goal").value,
 
-    if (names.some(n => !n) || new Set(names).size !== names.length) {
-      status.textContent =
-        "Please enter a unique name for every course.";
-      return;
-    }
+    courses: [...courses.children].map(el => ({
+      name: el.querySelector(".name").value.trim(),
+      difficulty: el.querySelector(".difficulty").value,
+      deadline: el.querySelector(".deadline").value,
+      deadlineType: el.querySelector(".type").value
+    })),
 
-    status.replaceChildren();
+    weeklyHours: Number(
+      document.getElementById("hours").value
+    ),
 
-    const heading = document.createElement("strong");
-    heading.textContent = "Your form works!";
+    sessionMinutes: Number(
+      document.getElementById("session").value
+    ),
 
-    const details = document.createElement("p");
-    details.textContent =
-      `${data.courses.length} courses | ` +
-      `${data.weeklyHours} study hours per week | ` +
-      `${data.availableDays.join(", ")}`;
+    preferredTime: document.getElementById("time").value,
 
-    const next = document.createElement("p");
-    next.textContent =
-      "Next: Connect Google Sheets and Gemini AI.";
+    availableDays: checked,
 
-    status.append(heading, details, next);
-    console.log("Study data preview:", data);
-  });
+    challenge: document.getElementById("challenge").value,
 
-document.getElementById("survey")
-  .addEventListener("reset", function() {
-    setTimeout(() => {
-      courses.replaceChildren();
-      count = 0;
-      addCourse();
-      document.getElementById("status").style.display = "none";
-    }, 0);
-  });
+    notes: document.getElementById("notes").value.trim()
+  };
+
+  const names = data.courses.map(course =>
+    course.name.toLowerCase()
+  );
+
+  if (
+    names.some(name => !name) ||
+    new Set(names).size !== names.length
+  ) {
+    status.textContent =
+      "Please enter a unique name for every course.";
+    return;
+  }
+
+  const formData = new URLSearchParams();
+  formData.append("payload", JSON.stringify(data));
+
+  const submitButton = survey.querySelector(
+    'button[type="submit"]'
+  );
+
+  submitting = true;
+  submitButton.disabled = true;
+  status.textContent = "Submitting study data...";
+
+  try {
+    await fetch(scriptURL, {
+      method: "POST",
+      mode: "no-cors",
+      body: formData
+    });
+
+    status.textContent =
+      "Submission sent! Please check Google Sheets " +
+      "to confirm your information was saved.";
+
+    console.log("Study data submitted:", data);
+
+  } catch (error) {
+    status.textContent =
+      "Unable to send submission: " + error.message;
+
+    console.error("Submission error:", error);
+
+  } finally {
+    submitting = false;
+    submitButton.disabled = false;
+  }
+});
+
+survey.addEventListener("reset", function() {
+  setTimeout(() => {
+    courses.replaceChildren();
+    count = 0;
+    addCourse();
+    status.style.display = "none";
+  }, 0);
+});
 </script>
+
 </body>
 </html>
 
